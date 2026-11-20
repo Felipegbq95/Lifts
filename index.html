@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lifts</title>
+<meta name="theme-color" content="#f3f4f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Lifts">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>html{color-scheme:light dark}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one phone screen. Shared day selector + tools on top, page arrows, two person columns of superset cards; each exercise = last time (grey) over this time (steppers). Fixed save bar. */
+:root{
+  --bg:#f3f4f6; --surface:#ffffff; --surface-2:#e9ebef; --line:#d6d9e0;
+  --fg:#15171c; --muted:#5d6370;
+  --yo:#2563c9; --yo-soft:#dfe8f8;
+  --mamor:#c8436a; --mamor-soft:#f8e0e7;
+  --up:#1f8a4c; --down:#b26a00; --danger:#b42318;
+  --accent:var(--fg); --accent-soft:var(--surface-2);
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1115; --surface:#181b21; --surface-2:#22262e; --line:#2f343e;
+  --fg:#eef0f4; --muted:#9aa1ae;
+  --yo:#6fa2f5; --yo-soft:#1c2a42; --mamor:#f07ea0; --mamor-soft:#3a1f29;
+  --up:#4cc27e; --down:#e2a23b; --danger:#f2766b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1115; --surface:#181b21; --surface-2:#22262e; --line:#2f343e;
+  --fg:#eef0f4; --muted:#9aa1ae;
+  --yo:#6fa2f5; --yo-soft:#1c2a42; --mamor:#f07ea0; --mamor-soft:#3a1f29;
+  --up:#4cc27e; --down:#e2a23b; --danger:#f2766b; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.3;
+  padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px));
+  padding-block:0 16px;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.p-yo{--accent:var(--yo);--accent-soft:var(--yo-soft)}
+.p-mamor{--accent:var(--mamor);--accent-soft:var(--mamor-soft)}
+main{max-width:720px;margin:0 auto}
+h1{font-family:var(--display);font-weight:700;margin:0;font-size:24px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border-radius:10px;background:var(--surface-2);font-weight:600;font-size:14px}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.small{padding:5px 9px;font-size:13px}
+.stack{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex:none;display:inline-block}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px 6px;display:flex;align-items:center;gap:4px}
+
+/* top tools */
+.seg{display:flex;background:var(--surface-2);border-radius:9px;padding:2px;gap:2px;flex:none;margin-right:4px}
+.seg button{width:30px;height:28px;border-radius:7px;font-family:var(--display);font-weight:700;font-size:15px;color:var(--muted);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.tool{height:36px;padding:0 9px;border-radius:10px;background:var(--surface-2);font-weight:600;font-size:13px;flex:none}
+.tool[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.tool.icon{width:38px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.tool.save{background:var(--fg);color:var(--bg);min-width:66px;padding:0 12px;font-size:14px}
+.tool.save.saved{background:var(--surface-2);color:var(--up)}
+.arrow{width:44px;height:38px;flex:none;border-radius:10px;background:var(--surface-2);font-size:26px;font-weight:700;line-height:1}
+.arrow:disabled{opacity:.3;cursor:default}
+
+/* columns */
+.cols{display:grid;grid-template-columns:1fr 1fr;column-gap:6px;row-gap:0;align-items:stretch}
+.cell{position:relative;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-top:0;padding:6px;min-width:0;display:flex}
+.gnum{position:absolute;top:-8px;left:-11px;z-index:1;width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:700;font-size:13px;line-height:19px;text-align:center;box-shadow:0 0 0 2px var(--bg)}
+.cell+.cell,.cell{border-bottom:0}
+.cell:not(.first) .ex{border-top:1px solid var(--line);padding-top:6px}
+.cell.first{border-top:1px solid var(--line);border-top-left-radius:var(--r);border-top-right-radius:var(--r)}
+.cell.lastc{border-bottom:1px solid var(--line);border-bottom-left-radius:var(--r);border-bottom-right-radius:var(--r)}
+.cell.gap{margin-top:6px}
+.cols>.hdr4{margin-bottom:3px}
+.col{display:flex;flex-direction:column;gap:5px;min-width:0}
+.colhead{display:flex;align-items:baseline;gap:6px;padding:0 2px}
+.colhead b{font-family:var(--display);font-size:18px;line-height:1;color:var(--accent)}
+.colhead span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grp{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r);padding:6px;display:flex;flex-direction:column;gap:6px}
+.exsep{border:0;border-top:1px solid var(--line);margin:0}
+.ex{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.exhead{display:flex;gap:6px;align-items:flex-start;min-width:0;flex:0 0 auto}
+.fields{flex:1;align-items:stretch}
+.exname{font-weight:600;font-size:13px;line-height:1.2;min-width:0;overflow-wrap:anywhere;flex:1}
+.fig{flex:none;width:18px;height:36px;align-self:center;margin:-2px 0}
+.fig *{fill:var(--line)}
+.fig .hi{fill:var(--accent)}
+.fig .spine{fill:none;stroke:var(--surface);stroke-width:.8}
+.mg{display:inline-block;font-size:9.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:1px 5px;border-radius:4px;vertical-align:1px;white-space:nowrap}
+.how{flex:none;width:24px;height:20px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:11px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
+.hdr4{font-size:10px;font-weight:600;color:var(--muted);text-align:center;letter-spacing:.04em;text-transform:uppercase;padding:0 7px 0 10px;margin-bottom:-2px}
+.last{font-family:var(--display);font-size:14px;line-height:1.1;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+.old{font-family:var(--display);font-size:13px;color:var(--muted);text-align:center;opacity:.6}
+.fld{display:flex;flex-direction:column;align-items:stretch;gap:2px;min-width:0}
+.st{flex:1 1 20px;min-height:20px;max-height:46px;border-radius:6px;background:var(--surface-2);color:var(--muted);font-size:10px;line-height:1}
+.st:active{background:var(--accent-soft);color:var(--accent)}
+.fld input{padding:2px 0;text-align:center;font-family:var(--display);font-size:19px;font-weight:600;border-radius:7px;width:100%;flex:1.5 1 32px;min-height:32px;max-height:60px}
+.fld input.up{border-color:var(--up);border-width:2px;color:var(--up)}
+.fld input.down{border-color:var(--down);border-width:2px;color:var(--down)}
+.fld input.chg{border-color:var(--accent);border-width:2px}
+.none{color:var(--muted);text-align:center;padding:14px 0;background:var(--surface);border:1px dashed var(--line);border-radius:var(--r)}
+
+/* save bar */
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:6;pointer-events:none;
+  padding:0 max(10px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+.bottom .in{max-width:720px;margin:0 auto;display:flex;justify-content:flex-end;gap:8px}
+.bottom .btn{pointer-events:auto;padding:8px 16px;border-radius:999px;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.btn.saved{background:var(--accent-soft);color:var(--accent)}
+
+/* routine editor */
+.who{display:flex;gap:4px;background:var(--surface-2);padding:3px;border-radius:10px;margin-left:auto}
+.who button{padding:6px 10px;border-radius:8px;font-weight:600;font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.who button[aria-pressed="true"]{background:var(--surface);color:var(--fg)}
+.pday{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:6px}
+.pex{display:flex;flex-direction:column;gap:4px;padding-top:8px;border-top:1px solid var(--line)}
+.prow1{display:grid;grid-template-columns:44px 1fr 96px 28px;gap:6px;align-items:end}
+.prow2{display:grid;grid-template-columns:48px 52px 64px 1fr;gap:6px}
+.pf{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pf input{padding:6px;font-size:14px;width:100%}
+.hdr{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.xbtn{color:var(--danger);font-size:16px;height:32px}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);padding:18px;text-align:center;color:var(--muted)}
+.toast{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:max(12px,env(safe-area-inset-left,0px));z-index:20;background:var(--fg);color:var(--bg);padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;white-space:nowrap}
+@media (min-width:560px){ .exname{font-size:14px} }
+</style>
+
+</head>
+<body>
+<main id="app"><div class="empty" style="margin-top:40px">Loading…</div></main>
+<div class="bottom"><div class="in" id="bar"></div></div>
+<div id="toast"></div>
+
+<script>
+(() => {
+const PEOPLE = ["yo","mamor"];
+const LS = "lifts-data-v1";
+const SEED = {"names":{"yo":"Yo","mamor":"Mamor"},"programs":{"yo":{"days":[{"title":"Day 1","focus":"L / S","exercises":[{"slot":"A1","name":"Squats","sets":"4","reps":"10","w":"12.5"},{"slot":"A2","name":"DB Shoulder Press","sets":"4","reps":"10","w":"12.5"},{"slot":"B1","name":"Leg Press","sets":"4","reps":"10","w":"40"},{"slot":"B2","name":"Cable Cross-Body Lateral Raises","sets":"4","reps":"10","w":"11"},{"slot":"C1","name":"Leg Curls","sets":"4","reps":"10","w":"38"},{"slot":"C2","name":"Chest Supported Rows","sets":"4","reps":"10","w":"57"},{"slot":"D1","name":"DB Flys","sets":"4","reps":"10","w":"7.5"},{"slot":"D2","name":"Underhand Pullups","sets":"4","reps":"10","w":"56"}]},{"title":"Day 2","focus":"B / C / S","exercises":[{"slot":"A1","name":"Machine Flat Press","sets":"4","reps":"10","w":"53"},{"slot":"A2","name":"BB Bent Rows","sets":"4","reps":"10","w":"15"},{"slot":"B1","name":"Incline DB Press","sets":"3","reps":"10","w":"15"},{"slot":"B2","name":"Pullups","sets":"3","reps":"10","w":"53"},{"slot":"C1","name":"Overhead Triceps","sets":"4","reps":"8","w":"35"},{"slot":"C2","name":"Low Rows","sets":"4","reps":"10","w":"35"},{"slot":"D1","name":"Cable Upright Rows","sets":"4","reps":"10","w":"35"},{"slot":"D2","name":"Cable Curls","sets":"4","reps":"10","w":"29"}]},{"title":"Day 3","focus":"A / L","exercises":[{"slot":"A1","name":"Deadlifts","sets":"4","reps":"10","w":"12.5"},{"slot":"A2","name":"Cable Bicep Curls","sets":"4","reps":"10","w":"35"},{"slot":"B1","name":"Hip Thrusts","sets":"4","reps":"10","w":"25"},{"slot":"B2","name":"DB Incline Curls","sets":"4","reps":"10","w":"7.5"},{"slot":"C1","name":"Leg Extensions","sets":"4","reps":"10","w":""},{"slot":"C2","name":"Cable Tricep Pushdowns","sets":"4","reps":"10","w":""},{"slot":"D1","name":"EZ Bar Bicep Curls","sets":"4","reps":"10","w":""},{"slot":"D2","name":"Overhead Triceps","sets":"4","reps":"10","w":""}]}]},"mamor":{"days":[{"title":"Day 1","focus":"L / S","exercises":[{"slot":"A1","name":"Squat","sets":"4","reps":"10","w":"2.5"},{"slot":"A2","name":"DB Lateral Raises","sets":"4","reps":"10","w":"2.5"},{"slot":"B1","name":"Leg Press","sets":"4","reps":"10","w":"0"},{"slot":"B2","name":"Cable Upright Rows","sets":"4","reps":"10","w":"11"},{"slot":"C1","name":"Leg Curls","sets":"4","reps":"10","w":"25"},{"slot":"C2","name":"Cable Bicep Curls","sets":"4","reps":"10","w":"DB 3kg"},{"slot":"D1","name":"Cable Glute Kickbacks","sets":"4","reps":"10","w":"38"},{"slot":"D2","name":"Decline Ab Crunches","sets":"4","reps":"10","w":"bw"}]},{"title":"Day 2","focus":"C / B","exercises":[{"slot":"A1","name":"Bench Press","sets":"4","reps":"10","w":"11"},{"slot":"A2","name":"Pullups","sets":"4","reps":"10","w":"37 lbs"},{"slot":"B1","name":"Incline DB Press","sets":"4","reps":"10","w":"2.5"},{"slot":"B2","name":"Chest-Supported Rows","sets":"4","reps":"10","w":"17"},{"slot":"C1","name":"DB Flys","sets":"4","reps":"10","w":"2.5"},{"slot":"C2","name":"DB Rows","sets":"4","reps":"10","w":"5"},{"slot":"D1","name":"Cable Tricep Pulldown","sets":"4","reps":"10","w":"11"},{"slot":"D2","name":"Calves","sets":"4","reps":"10","w":"11"}]},{"title":"Day 3","focus":"L / A","exercises":[{"slot":"A1","name":"Deadlifts","sets":"4","reps":"10","w":"5"},{"slot":"A2","name":"Cable Bicep Curls","sets":"4","reps":"10","w":"11"},{"slot":"B1","name":"Hip Thrusts","sets":"4","reps":"10","w":"10"},{"slot":"B2","name":"Incline DB Curls","sets":"4","reps":"10","w":"2.5"},{"slot":"C1","name":"Leg Extensions","sets":"4","reps":"10","w":""},{"slot":"C2","name":"Cable Tricep Pushdowns","sets":"4","reps":"10","w":""},{"slot":"D1","name":"Hip Abductors","sets":"4","reps":"10","w":""},{"slot":"D2","name":"Hip Adductors","sets":"4","reps":"10","w":""}]}]}},"sessions":[{"person":"mamor","day":0,"title":"Day 1","focus":"L / S","source":"sheet","label":"Spreadsheet \u00b7 Week 1","startedAt":1,"finishedAt":1,"ex":[{"slot":"A1","name":"Squat","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true}]},{"slot":"A2","name":"DB Lateral Raises","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true}]},{"slot":"B1","name":"Leg Press","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"0","r":10,"rir":null,"done":true},{"w":"0","r":10,"rir":null,"done":true},{"w":"0","r":10,"rir":null,"done":true},{"w":"0","r":10,"rir":null,"done":true}]},{"slot":"B2","name":"Cable Upright Rows","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true}]},{"slot":"C1","name":"Leg Curls","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"25","r":10,"rir":null,"done":true},{"w":"25","r":10,"rir":null,"done":true},{"w":"25","r":10,"rir":null,"done":true},{"w":"25","r":10,"rir":null,"done":true}]},{"slot":"C2","name":"Cable Bicep Curls","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"DB 3kg","r":10,"rir":null,"done":true},{"w":"DB 3kg","r":10,"rir":null,"done":true},{"w":"DB 3kg","r":10,"rir":null,"done":true},{"w":"DB 3kg","r":10,"rir":null,"done":true}]},{"slot":"D1","name":"Cable Glute Kickbacks","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"38","r":10,"rir":null,"done":true},{"w":"38","r":10,"rir":null,"done":true},{"w":"38","r":10,"rir":null,"done":true},{"w":"38","r":10,"rir":null,"done":true}]},{"slot":"D2","name":"Decline Ab Crunches","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"bw","r":10,"rir":null,"done":true},{"w":"bw","r":10,"rir":null,"done":true},{"w":"bw","r":10,"rir":null,"done":true},{"w":"bw","r":10,"rir":null,"done":true}]}],"id":"mamor-sheet-1"},{"person":"mamor","day":1,"title":"Day 2","focus":"C / B","source":"sheet","label":"Spreadsheet \u00b7 Week 1","startedAt":2,"finishedAt":2,"ex":[{"slot":"A1","name":"Bench Press","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true}]},{"slot":"A2","name":"Pullups","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"37 lbs","r":10,"rir":null,"done":true},{"w":"37 lbs","r":10,"rir":null,"done":true},{"w":"37 lbs","r":10,"rir":null,"done":true},{"w":"37 lbs","r":10,"rir":null,"done":true}]},{"slot":"B1","name":"Incline DB Press","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true}]},{"slot":"B2","name":"Chest-Supported Rows","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"17","r":10,"rir":null,"done":true},{"w":"17","r":10,"rir":null,"done":true},{"w":"17","r":10,"rir":null,"done":true},{"w":"17","r":10,"rir":null,"done":true}]},{"slot":"C1","name":"DB Flys","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true}]},{"slot":"C2","name":"DB Rows","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"5","r":10,"rir":null,"done":true},{"w":"5","r":10,"rir":null,"done":true},{"w":"5","r":10,"rir":null,"done":true},{"w":"5","r":10,"rir":null,"done":true}]},{"slot":"D1","name":"Cable Tricep Pulldown","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true}]},{"slot":"D2","name":"Calves","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true}]}],"id":"mamor-sheet-2"},{"person":"mamor","day":2,"title":"Day 3","focus":"L / A","source":"sheet","label":"Spreadsheet \u00b7 Week 1","startedAt":3,"finishedAt":3,"ex":[{"slot":"A1","name":"Deadlifts","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"5","r":10,"rir":null,"done":true},{"w":"5","r":10,"rir":null,"done":true},{"w":"5","r":10,"rir":null,"done":true},{"w":"5","r":10,"rir":null,"done":true}]},{"slot":"A2","name":"Cable Bicep Curls","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true}]},{"slot":"B1","name":"Hip Thrusts","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"10","r":10,"rir":null,"done":true},{"w":"10","r":10,"rir":null,"done":true},{"w":"10","r":10,"rir":null,"done":true},{"w":"10","r":10,"rir":null,"done":true}]},{"slot":"B2","name":"Incline DB Curls","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true},{"w":"2.5","r":10,"rir":null,"done":true}]},{"slot":"C1","name":"Leg Extensions","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"C2","name":"Cable Tricep Pushdowns","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"D1","name":"Hip Abductors","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"D2","name":"Hip Adductors","target":{"sets":4,"reps":"10"},"note":"","sets":[]}],"id":"mamor-sheet-3"},{"person":"yo","day":0,"title":"Day 1","focus":"L / S","source":"sheet","label":"Spreadsheet \u00b7 Week 1","startedAt":1,"finishedAt":1,"ex":[{"slot":"A1","name":"Squats","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"12.5","r":10,"rir":null,"done":true},{"w":"12.5","r":10,"rir":null,"done":true},{"w":"12.5","r":10,"rir":null,"done":true},{"w":"12.5","r":10,"rir":null,"done":true}]},{"slot":"A2","name":"DB Shoulder Press","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"12.5","r":10,"rir":null,"done":true},{"w":"12.5","r":10,"rir":null,"done":true},{"w":"12.5","r":10,"rir":null,"done":true},{"w":"12.5","r":10,"rir":null,"done":true}]},{"slot":"B1","name":"Leg Press","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"40","r":10,"rir":null,"done":true},{"w":"40","r":10,"rir":null,"done":true},{"w":"40","r":10,"rir":null,"done":true},{"w":"40","r":10,"rir":null,"done":true}]},{"slot":"B2","name":"Cable Cross-Body Lateral Raises","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true},{"w":"11","r":10,"rir":null,"done":true}]},{"slot":"C1","name":"Leg Curls","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"38","r":10,"rir":null,"done":true},{"w":"38","r":10,"rir":null,"done":true},{"w":"38","r":10,"rir":null,"done":true},{"w":"38","r":10,"rir":null,"done":true}]},{"slot":"C2","name":"Chest Supported Rows","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"57","r":10,"rir":null,"done":true},{"w":"57","r":10,"rir":null,"done":true},{"w":"57","r":10,"rir":null,"done":true},{"w":"57","r":10,"rir":null,"done":true}]},{"slot":"D1","name":"DB Flys","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"7.5","r":10,"rir":null,"done":true},{"w":"7.5","r":10,"rir":null,"done":true},{"w":"7.5","r":10,"rir":null,"done":true},{"w":"7.5","r":10,"rir":null,"done":true}]},{"slot":"D2","name":"Underhand Pullups","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"56","r":10,"rir":null,"done":true},{"w":"56","r":10,"rir":null,"done":true},{"w":"56","r":10,"rir":null,"done":true},{"w":"56","r":10,"rir":null,"done":true}]}],"id":"yo-sheet-1"},{"person":"yo","day":1,"title":"Day 2","focus":"B / C / S","source":"sheet","label":"Spreadsheet \u00b7 Week 1","startedAt":2,"finishedAt":2,"ex":[{"slot":"A1","name":"Machine Flat Press","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"53","r":10,"rir":null,"done":true},{"w":"53","r":10,"rir":null,"done":true},{"w":"53","r":10,"rir":null,"done":true},{"w":"53","r":10,"rir":null,"done":true}]},{"slot":"A2","name":"BB Bent Rows","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"15","r":10,"rir":null,"done":true},{"w":"15","r":10,"rir":null,"done":true},{"w":"15","r":10,"rir":null,"done":true},{"w":"15","r":10,"rir":null,"done":true}]},{"slot":"B1","name":"Incline DB Press","target":{"sets":3,"reps":"10"},"note":"","sets":[{"w":"15","r":10,"rir":null,"done":true},{"w":"15","r":10,"rir":null,"done":true},{"w":"15","r":10,"rir":null,"done":true}]},{"slot":"B2","name":"Pullups","target":{"sets":3,"reps":"10"},"note":"","sets":[{"w":"53","r":10,"rir":null,"done":true},{"w":"53","r":10,"rir":null,"done":true},{"w":"53","r":10,"rir":null,"done":true}]},{"slot":"C1","name":"Overhead Triceps","target":{"sets":4,"reps":"8"},"note":"","sets":[{"w":"35","r":8,"rir":null,"done":true},{"w":"35","r":8,"rir":null,"done":true},{"w":"35","r":8,"rir":null,"done":true},{"w":"35","r":8,"rir":null,"done":true}]},{"slot":"C2","name":"Low Rows","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"35","r":10,"rir":null,"done":true},{"w":"35","r":10,"rir":null,"done":true},{"w":"35","r":10,"rir":null,"done":true},{"w":"35","r":10,"rir":null,"done":true}]},{"slot":"D1","name":"Cable Upright Rows","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"35","r":10,"rir":null,"done":true},{"w":"35","r":10,"rir":null,"done":true},{"w":"35","r":10,"rir":null,"done":true},{"w":"35","r":10,"rir":null,"done":true}]},{"slot":"D2","name":"Cable Curls","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"29","r":10,"rir":null,"done":true},{"w":"29","r":10,"rir":null,"done":true},{"w":"29","r":10,"rir":null,"done":true},{"w":"29","r":10,"rir":null,"done":true}]}],"id":"yo-sheet-2"},{"person":"yo","day":2,"title":"Day 3","focus":"A / L","source":"sheet","label":"Spreadsheet \u00b7 Week 1","startedAt":3,"finishedAt":3,"ex":[{"slot":"A1","name":"Deadlifts","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"12.5","r":10,"rir":null,"done":true},{"w":"12.5","r":10,"rir":null,"done":true},{"w":"12.5","r":10,"rir":null,"done":true},{"w":"12.5","r":10,"rir":null,"done":true}]},{"slot":"A2","name":"Cable Bicep Curls","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"35","r":10,"rir":null,"done":true},{"w":"35","r":10,"rir":null,"done":true},{"w":"35","r":10,"rir":null,"done":true},{"w":"35","r":10,"rir":null,"done":true}]},{"slot":"B1","name":"Hip Thrusts","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"25","r":10,"rir":null,"done":true},{"w":"25","r":10,"rir":null,"done":true},{"w":"25","r":10,"rir":null,"done":true},{"w":"25","r":10,"rir":null,"done":true}]},{"slot":"B2","name":"DB Incline Curls","target":{"sets":4,"reps":"10"},"note":"","sets":[{"w":"7.5","r":10,"rir":null,"done":true},{"w":"7.5","r":10,"rir":null,"done":true},{"w":"7.5","r":10,"rir":null,"done":true},{"w":"7.5","r":10,"rir":null,"done":true}]},{"slot":"C1","name":"Leg Extensions","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"C2","name":"Cable Tricep Pushdowns","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"D1","name":"EZ Bar Bicep Curls","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"D2","name":"Overhead Triceps","target":{"sets":4,"reps":"10"},"note":"","sets":[]}],"id":"yo-sheet-3"},{"person":"yo","day":0,"title":"Day 1","focus":"L / S","source":"sheet","label":"Spreadsheet \u00b7 Week 2","startedAt":4,"finishedAt":4,"ex":[{"slot":"A1","name":"Squats","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"A2","name":"DB Shoulder Press","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"B1","name":"Leg Press","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"B2","name":"Cable Cross-Body Lateral Raises","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"C1","name":"Leg Curls","target":{"sets":3,"reps":"10"},"note":"","sets":[{"w":"45","r":10,"rir":null,"done":true},{"w":"45","r":10,"rir":null,"done":true},{"w":"45","r":10,"rir":null,"done":true}]},{"slot":"C2","name":"Chest Supported Rows","target":{"sets":3,"reps":"10"},"note":"","sets":[{"w":"45","r":10,"rir":null,"done":true},{"w":"45","r":10,"rir":null,"done":true},{"w":"45","r":10,"rir":null,"done":true}]},{"slot":"D1","name":"DB Flys","target":{"sets":4,"reps":"10"},"note":"","sets":[]},{"slot":"D2","name":"Underhand Pullups","target":{"sets":4,"reps":"10"},"note":"","sets":[]}],"id":"yo-sheet-4"}],"active":{}};
+const S = {
+  names:{yo:"Yo",mamor:"Mamor"}, programs:{}, active:{}, sessions:[], preview:{},
+  tab:"gym", ready:false, timeout:false, g:0, day:null, hist:false, planDraft:null, planPerson:"yo"
+};
+const STEP = {n:1, r:1, w:0.5, rir:1};
+const LABEL = {n:"Sets", r:"Reps", w:"Kg", rir:"RIR"};
+const MUSCLE_RULES = [
+  [/tricep|pushdown|pulldown.*tri|overhead tri/,"Triceps"], [/leg curl|ham/,"Hamstrings"], [/leg ext/,"Quads"],
+  [/upright row|lateral|shoulder|overhead press|military|delt/,"Shoulders"],
+  [/curl|bicep/,"Biceps"], [/deadlift|rdl/,"Hamstrings · Glutes"], [/hip thrust|kickback|glute|abductor/,"Glutes"], [/adductor/,"Adductors"],
+  [/squat|leg press|lunge|split/,"Quads"], [/calf|calves/,"Calves"], [/crunch|\bab|core|plank/,"Abs"],
+  [/row|pull ?up|\bchin|lat pull|pulldown/,"Back"], [/bench|chest|fly|flye|press|push ?up|dip/,"Chest"]
+];
+const guessMuscle = name => { const n = String(name||"").toLowerCase(); for (const [re,m] of MUSCLE_RULES) if (re.test(n)) return m; return ""; };
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+const groupKey = slot => String(slot||"").replace(/\d+$/,"") || "?";
+const show = v => (v === "" || v == null) ? "–" : String(v);
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+const isoOf = t => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+function toast(msg){ const t = document.getElementById("toast"); t.innerHTML = `<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toast._t); toast._t = setTimeout(()=>t.innerHTML="",1800); }
+function saveCache(){ try{ localStorage.setItem(LS, JSON.stringify({v:1,names:S.names,programs:S.programs,active:S.active,sessions:S.sessions})); }catch(e){ toast("Couldn't save on this phone"); } }
+function loadCache(){ try{ const c = JSON.parse(localStorage.getItem(LS)||"null"); if(c){ S.names=c.names||S.names; S.programs=c.programs||{}; S.active=c.active||{}; S.sessions=c.sessions||[]; S.ready = Object.keys(S.programs).length>0; } }catch(e){} }
+
+// everything lives on this phone
+let saveT = null;
+function queueWrite(){ clearTimeout(saveT); saveT = setTimeout(saveCache, 150); }
+// ---------- domain ----------
+const program = p => S.programs[p] || {days:[]};
+const sessionsOf = p => S.sessions.filter(s=>s.person===p).sort((a,b)=>(b.finishedAt||0)-(a.finishedAt||0));
+const maxDays = () => Math.max(0, ...PEOPLE.map(p=>program(p).days.length));
+const liveActive = p => { const a = S.active[p]; return a && a.date === todayISO() ? a : null; };
+function todaysSession(p, di){ return sessionsOf(p).find(s => s.source==="app" && s.day===di && isoOf(s.finishedAt)===todayISO()); }
+function defaultDay(){
+  for (const p of PEOPLE){ const a = liveActive(p); if (a) return a.day; }
+  const n = maxDays(); if (!n) return 0;
+  const last = S.sessions.slice().sort((a,b)=>(b.finishedAt||0)-(a.finishedAt||0))[0];
+  if (!last) return 0;
+  if (last.source==="app" && isoOf(last.finishedAt)===todayISO()) return last.day;
+  return ((last.day ?? -1) + 1) % n;
+}
+const curDay = () => S.day ?? defaultDay();
+function summ(e){
+  if (e.v) return e.v;
+  const done = (e.sets||[]).filter(s=>s.done && s.w !== "" && s.w != null);
+  if (!done.length) return null;
+  const l = done[done.length-1];
+  const rirs = done.filter(s=>s.rir!=null);
+  return {n:done.length, r:l.r ?? "", w:l.w, rir: rirs.length ? rirs[rirs.length-1].rir : ""};
+}
+function entriesFor(p, name, max, skipId){
+  const key = norm(name), out = [];
+  for (const s of sessionsOf(p)){
+    if (s.id === skipId) continue;
+    const e = (s.ex||[]).find(x => norm(x.name) === key); const v = e && summ(e);
+    if (v){ out.push({sess:s, v}); if (out.length >= max) break; }
+  }
+  return out;
+}
+function label(s){
+  if (s.source === "sheet") return (s.label||"").replace(/^Spreadsheet · /,"");
+  return new Date(s.finishedAt).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+}
+function buildDraft(p, di){
+  const saved = todaysSession(p, di);
+  if (saved) return {person:p, day:di, date:todayISO(), title:saved.title, focus:saved.focus, savedId:saved.id, savedAt:saved.finishedAt, dirty:false,
+    ex: saved.ex.map(e => ({slot:e.slot, name:e.name, target:e.target, v:{...summ(e) || {n:"",r:"",w:"",rir:""}}}))};
+  const d = program(p).days[di];
+  return { person:p, day:di, date:todayISO(), title:d.title, focus:d.focus||"",
+    ex: d.exercises.map(e => {
+      const last = entriesFor(p, e.name, 1)[0];
+      const v = last ? {...last.v} : {n:parseInt(e.sets)||"", r:parseInt(e.reps)||e.reps||"", w:e.w ?? "", rir:""};
+      if (v.rir == null) v.rir = "";
+      return {slot:e.slot, name:e.name, target:{sets:e.sets, reps:e.reps}, v};
+    })};
+}
+function view(p){
+  const di = curDay();
+  if (di >= program(p).days.length) return null;
+  const a = liveActive(p);
+  if (a && a.day === di) return a;
+  if (!S.preview[p] || S.preview[p].day !== di || S.preview[p].date !== todayISO()) S.preview[p] = buildDraft(p, di);
+  return S.preview[p];
+}
+function materialize(p){
+  const v = view(p);
+  if (S.active[p] !== v){ S.active[p] = v; S.preview[p] = null; }
+  return v;
+}
+function commit(p){ const a = S.active[p]; a.updatedAt = Date.now(); queueWrite("active/"+p, a); saveCache(); }
+function groups(){ const ks = new Set(); PEOPLE.forEach(p => { const v = view(p); v && v.ex.forEach(e => ks.add(groupKey(e.slot))); }); return [...ks].sort(); }
+const perPage = () => window.innerHeight >= 1100 ? 3 : 2;
+function pages(){ const gs = groups(), out = [], n = perPage(); for (let i=0;i<gs.length;i+=n) out.push(gs.slice(i,i+n)); return out; }
+// tiny body figure; worked region lit in the person's colour
+const BACK_VIEW = /back|triceps|glutes|hamstrings|calves/i;
+function figure(m){
+  const has = re => re.test(m||"");
+  const back = BACK_VIEW.test(m||"") && !/biceps|chest|quads|abs|shoulders/i.test(m||"");
+  const on = c => c ? 'class="hi"' : "";
+  const pecs = has(/chest/i), delt = has(/shoulder/i), arms = has(/biceps|triceps/i), abs = has(/abs/i), lats = has(/back/i);
+  const thigh = has(/quads|hamstrings/i), glute = has(/glutes/i), add = has(/adductor/i), calf = has(/calves/i);
+  return `<svg class="fig" viewBox="0 0 20 40" aria-hidden="true">
+    <circle cx="10" cy="3.6" r="3"/>
+    <circle ${on(delt)} cx="4.6" cy="9.6" r="2.3"/><circle ${on(delt)} cx="15.4" cy="9.6" r="2.3"/>
+    ${back ? `<rect ${on(lats)} x="6" y="8" width="8" height="7.4" rx="2"/>`
+           : `<rect ${on(pecs)} x="6" y="8" width="3.8" height="6.4" rx="1.6"/><rect ${on(pecs)} x="10.2" y="8" width="3.8" height="6.4" rx="1.6"/>`}
+    <rect ${on(abs)} x="6.6" y="${back?15.8:14.8}" width="6.8" height="${back?5.2:6.2}" rx="1.4"/>
+    <rect ${on(arms)} x="2.6" y="11.6" width="3" height="6.6" rx="1.5"/><rect ${on(arms)} x="14.4" y="11.6" width="3" height="6.6" rx="1.5"/>
+    <rect x="2.2" y="18.8" width="2.7" height="6" rx="1.3"/><rect x="15.1" y="18.8" width="2.7" height="6" rx="1.3"/>
+    ${back ? `<rect ${on(glute)} x="6" y="21.4" width="3.9" height="4.6" rx="1.9"/><rect ${on(glute)} x="10.1" y="21.4" width="3.9" height="4.6" rx="1.9"/>`
+           : `<rect ${on(glute)} x="6" y="21.4" width="8" height="3.6" rx="1.6"/>`}
+    <rect ${on(thigh)} x="6" y="${back?26.4:25.4}" width="3.7" height="${back?7:8}" rx="1.8"/><rect ${on(thigh)} x="10.3" y="${back?26.4:25.4}" width="3.7" height="${back?7:8}" rx="1.8"/>
+    ${add ? `<rect class="hi" x="8.6" y="25.6" width="2.8" height="6.4" rx="1.2"/>` : ""}
+    <rect ${on(calf)} x="6.3" y="33.8" width="3.1" height="5.8" rx="1.5"/><rect ${on(calf)} x="10.6" y="33.8" width="3.1" height="5.8" rx="1.5"/>
+    ${back ? `<path class="spine" d="M10 8.4v12.4"/>` : ""}
+  </svg>`;
+}
+function muscleFor(p, e){
+  const key = norm(e.name);
+  for (const d of program(p).days) for (const x of d.exercises) if (norm(x.name)===key && x.m) return x.m;
+  return guessMuscle(e.name);
+}
+function linkFor(p, e){
+  const key = norm(e.name);
+  for (const d of program(p).days) for (const x of d.exercises) if (norm(x.name)===key && x.link) return x.link;
+  return "https://www.youtube.com/results?search_query=" + encodeURIComponent("how to do " + e.name + " exercise form");
+}
+function cmp(now, last){
+  if (last == null || last === "") return "";
+  const a = String(now ?? "").trim(), b = String(last ?? "").trim();
+  if (a === b) return "";
+  if (/^[\d.]+$/.test(a) && /^[\d.]+$/.test(b)) return parseFloat(a) > parseFloat(b) ? "up" : "down";
+  return "chg";
+}
+
+// ---------- render ----------
+function render(){
+  const ae = document.activeElement;
+  const keep = ae && ae.id ? {id:ae.id, s:ae.selectionStart, e:ae.selectionEnd} : null;
+  let html;
+  if (!S.ready) html = `<div class="empty" style="margin-top:40px">${S.timeout?"Can't connect. Reopen the page.":"Loading…"}</div>`;
+  else if (S.tab === "plan") html = renderPlan();
+  else html = renderGym();
+  document.getElementById("app").innerHTML = html;
+  renderBar(); fit();
+  if (keep){ const el = document.getElementById(keep.id); if (el && el !== document.activeElement){ el.focus({preventScroll:true}); try{ if(keep.s!=null) el.setSelectionRange(keep.s,keep.e); }catch(e){} } }
+}
+function renderGym(){
+  const di = curDay(); const pgs = pages();
+  if (S.g >= pgs.length) S.g = Math.max(0, pgs.length-1);
+  const pg = pgs[S.g] || [];
+  const dayBtns = Array.from({length:maxDays()}, (_,i)=>`<button data-a="day" data-v="${i}" aria-pressed="${i===di}">D${i+1}</button>`).join("");
+  return `<header class="top">
+      <div class="seg" role="group" aria-label="Day">${dayBtns}</div>
+      <button class="arrow" data-a="prev" ${S.g<=0?"disabled":""} aria-label="Previous exercises">‹</button>
+      <button class="arrow" data-a="next" ${S.g>=pgs.length-1?"disabled":""} aria-label="Next exercises">›</button>
+      <span style="flex:1"></span>
+      <button class="tool icon" data-a="hist" aria-pressed="${S.hist}" aria-label="Show past weeks"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></button>
+      <button class="tool icon" data-a="edit" aria-label="Edit routine"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></button>
+      <button class="tool save" id="savebtn" data-a="finish"></button>
+    </header>
+    <div class="cols" id="cols">${rows(pg)}</div>`;
+}
+function field(p, i, k, val, last){
+  const id = `${k}-${p}-${i}`;
+  return `<div class="fld">
+    <button class="st" data-a="step" data-p="${p}" data-i="${i}" data-k="${k}" data-d="1" aria-label="${LABEL[k]} up" tabindex="-1">▲</button>
+    <input id="${id}" class="${cmp(val, last)}" data-a="f" data-k="${k}" data-p="${p}" data-i="${i}" value="${esc(val ?? "")}" inputmode="${k==="w"?"decimal":"numeric"}" aria-label="${LABEL[k]}">
+    <button class="st" data-a="step" data-p="${p}" data-i="${i}" data-k="${k}" data-d="-1" aria-label="${LABEL[k]} down" tabindex="-1">▼</button>
+  </div>`;
+}
+function exCell(p, v, e, i){
+  const hist = entriesFor(p, e.name, S.hist ? 5 : 1, v.savedId);
+  const last = hist[0] && hist[0].v;
+  const older = S.hist ? hist.slice(1).reverse() : [];
+  return `<div class="ex">
+      <div class="exhead"><span class="exname">${esc(e.name)}${muscleFor(p,e)?` <span class="mg">${esc(muscleFor(p,e))}</span>`:""}</span><a class="how" href="${esc(linkFor(p,e))}" target="_blank" rel="noopener" aria-label="How to do ${esc(e.name)}">▶</a></div>
+      ${older.map(h=>`<div class="grid4 old" title="${esc(label(h.sess))}"><span>${show(h.v.n)}</span><span>${show(h.v.r)}</span><span>${show(h.v.w)}</span><span>${show(h.v.rir)}</span></div>`).join("")}
+      <div class="grid4 last" title="Last time${hist[0]?": "+esc(label(hist[0].sess)):""}"><span>${show(last&&last.n)}</span><span>${show(last&&last.r)}</span><span>${show(last&&last.w)}</span><span>${show(last&&last.rir)}</span></div>
+      <div class="grid4 fields">${["n","r","w","rir"].map(k=>field(p,i,k,e.v[k],last&&last[k])).join("")}</div>
+    </div>`;
+}
+// rows: both people's k-th exercise of a superset share one grid row, so heights match
+function rows(pg){
+  const vs = {}, byG = {};
+  PEOPLE.forEach(p => { const v = view(p); vs[p] = v; byG[p] = {};
+    if (v) v.ex.forEach((e,i) => { const g = groupKey(e.slot); if (pg.includes(g)) (byG[p][g] = byG[p][g] || []).push([e,i]); }); });
+  let html = PEOPLE.map(p => vs[p] ? `<div class="grid4 hdr4">${"<span>sets</span><span>reps</span><span>kg</span><span>rir</span>"}</div>` : `<div class="none">Rest day</div>`).join("");
+  const all = groups(); let nrows = 0;
+  pg.forEach((g, gi) => {
+    const n = Math.max(...PEOPLE.map(p => (byG[p][g]||[]).length)); nrows += n;
+    for (let k=0; k<n; k++) PEOPLE.forEach(p => {
+      const list = byG[p][g];
+      if (!list){ html += `<div></div>`; return; }
+      const cls = ["cell", "p-"+p, k===0?"first":"", k===n-1?"lastc":"", k===0&&gi>0?"gap":""].join(" ");
+      html += `<div class="${cls}">${k===0?`<span class="gnum" aria-label="Superset ${all.indexOf(g)+1}">${all.indexOf(g)+1}</span>`:""}${list[k] ? exCell(p, vs[p], list[k][0], list[k][1]) : ""}</div>`;
+    });
+  });
+  rows.n = nrows;
+  return html;
+}
+// stretch the rows to fill the screen and line up exercise names across the two columns
+function fit(){
+  const c = document.getElementById("cols"); if (!c) return;
+  c.style.gridTemplateRows = `auto repeat(${rows.n||1}, minmax(min-content, 1fr))`;
+  const safeB = parseFloat(getComputedStyle(document.documentElement).paddingBottom) || 0;
+  c.style.minHeight = Math.max(0, window.innerHeight - c.getBoundingClientRect().top - window.scrollY - safeB - 10) + "px";
+  const cells = [...c.querySelectorAll(".cell")];
+  cells.forEach(x => { const h = x.querySelector(".exhead"); if (h) h.style.minHeight = ""; });
+  for (let i = 0; i + 1 < cells.length; i += 2){
+    const a = cells[i].querySelector(".exhead"), b = cells[i+1].querySelector(".exhead");
+    if (a && b){ const m = Math.max(a.offsetHeight, b.offsetHeight) + "px"; a.style.minHeight = m; b.style.minHeight = m; }
+  }
+}
+let rz = null;
+window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (!editing()) render(); }, 150); });
+function renderBar(){
+  const el = document.getElementById("bar");
+  if (!S.ready){ el.innerHTML = ""; return; }
+  if (S.tab === "plan"){ el.innerHTML = `<button class="btn" data-a="back">Back</button><button class="btn primary p-${S.planDraft?S.planDraft.person:"yo"}" data-a="plan-save">Save routine</button>`; return; }
+  const vs = PEOPLE.map(view).filter(Boolean);
+  const anyNew = vs.some(v=>!v.savedId), anyDirty = vs.some(v=>v.dirty);
+  el.innerHTML = "";
+  const b = document.getElementById("savebtn"); if (!b) return;
+  b.textContent = anyNew ? "Save" : anyDirty ? "Update" : "Saved ✓";
+  b.classList.toggle("saved", !anyNew && !anyDirty); b.disabled = !vs.length;
+}
+
+function renderPlan(){
+  if (!S.planDraft) S.planDraft = {person:S.planPerson, names:{...S.names}, prog:JSON.parse(JSON.stringify(program(S.planPerson)))};
+  const D = S.planDraft; const p = D.person;
+  const sw = `<div class="who">${PEOPLE.map(x=>`<button class="p-${x}" data-a="pperson" data-v="${x}" aria-pressed="${x===p}"><span class="dot"></span>${esc(S.names[x])}</button>`).join("")}</div>`;
+  const days = D.prog.days.map((d,di)=>`<section class="pday p-${p}">
+    <div class="row"><input id="pt-${di}" data-a="pd" data-di="${di}" data-k="title" value="${esc(d.title)}" style="width:80px" aria-label="Day name">
+      <input id="pf-${di}" data-a="pd" data-di="${di}" data-k="focus" value="${esc(d.focus||"")}" placeholder="Focus" style="flex:1" aria-label="Focus">
+      <button class="xbtn" data-a="rmday" data-di="${di}" aria-label="Remove day">✕</button></div>
+    ${d.exercises.map((e,ei)=>{ const f = (k,lbl,ph,im) => `<label class="pf"><span class="hdr">${lbl}</span><input id="pe-${di}-${ei}-${k}" data-a="pe" data-di="${di}" data-ei="${ei}" data-k="${k}" value="${esc(e[k]||"")}" ${ph?`placeholder="${ph}"`:""} ${im?`inputmode="${im}"`:""}></label>`;
+      return `<div class="pex">
+        <div class="prow1">${f("slot","Slot")}${f("name","Exercise")}${f("m","Muscle",esc(guessMuscle(e.name)))}<button class="xbtn" data-a="rmex" data-di="${di}" data-ei="${ei}" aria-label="Remove ${esc(e.name)}">✕</button></div>
+        <div class="prow2">${f("sets","Sets","","numeric")}${f("reps","Reps")}${f("w","Start kg","","decimal")}${f("link","Video link","YouTube search")}</div>
+      </div>`; }).join("")}
+    <div><button class="btn small ghost" data-a="addex" data-di="${di}">+ Exercise</button></div>
+  </section>`).join("");
+  return `<header class="top"><h1>Routine</h1>${sw}</header>
+  <div class="stack">
+    <div class="pday"><span class="hdr">Names</span><div class="row">${PEOPLE.map(x=>`<input id="nm-${x}" data-a="pname" data-v="${x}" value="${esc(D.names[x])}" style="flex:1" aria-label="Name">`).join("")}</div></div>
+    <div class="hdr" style="padding:0 2px">Same letter = superset (A1 + A2 are done together)</div>
+    ${days}
+    <div class="row"><button class="btn ghost" data-a="addday">+ Day</button></div>
+    <div class="pday"><span class="hdr">Backup</span>
+      <div class="row"><button class="btn" data-a="export">Export backup</button><label class="btn" for="import-in">Import backup</label><input type="file" id="import-in" accept="application/json,.json" hidden></div>
+      <span class="muted" style="font-size:12px">Your numbers are stored only on this phone. Export a backup now and then.</span></div>
+  </div>`;
+}
+
+// ---------- events ----------
+function gotoPage(d){ const n = pages().length; const g = Math.max(0, Math.min(n-1, S.g + d)); if (g !== S.g){ S.g = g; render(); } }
+function stepVal(k, val, d){
+  const s = String(val ?? "").trim();
+  if (k === "rir"){ if (s === "") return d > 0 ? 0 : ""; const n = parseInt(s)+d; return n < 0 ? "" : Math.min(5, n); }
+  if (k === "w"){ if (s !== "" && !/^[\d.]+$/.test(s)) return val; const n = Math.max(0, Math.round(((parseFloat(s)||0) + 0.5*d)*2)/2); return String(n); }
+  const n = (parseInt(s)||0) + d; return Math.max(k==="n"?1:0, n);
+}
+function setVal(p, i, k, val){
+  const a = materialize(p); const e = a.ex[i];
+  e.v[k] = val; a.dirty = true;
+  const last = entriesFor(p, e.name, 1, a.savedId)[0];
+  const el = document.getElementById(`${k}-${p}-${i}`);
+  if (el){ if (el !== document.activeElement) el.value = val; el.className = cmp(val, last && last.v[k]); }
+  renderBar(); commit(p);
+}
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("[data-a]"); if (!b || b.tagName==="INPUT") return;
+  const a = b.dataset.a, p = b.dataset.p;
+  switch(a){
+    case "prev": gotoPage(-1); break;
+    case "next": gotoPage(1); break;
+    case "g": S.g = +b.dataset.v; render(); break;
+    case "day": S.day = +b.dataset.v; S.g = 0; render(); break;
+    case "hist": S.hist = !S.hist; render(); break;
+    case "step": { const i = +b.dataset.i, k = b.dataset.k; const v = view(p); setVal(p, i, k, stepVal(k, v.ex[i].v[k], +b.dataset.d)); break; }
+    case "finish": {
+      const todo = PEOPLE.filter(q => { const v = view(q); return v && (!v.savedId || v.dirty); });
+      if (!todo.length){ toast("Already saved"); break; }
+      const upd = todo.every(q => view(q).savedId);
+      todo.forEach(q => finish(q, true)); render(); toast(upd ? "Updated" : "Saved"); break; }
+    case "edit": S.planPerson = "yo"; S.planDraft = null; S.tab = "plan"; render(); scrollTo(0,0); break;
+    case "back": S.tab = "gym"; S.planDraft = null; render(); scrollTo(0,0); break;
+    case "pperson": S.planPerson = b.dataset.v; S.planDraft = null; render(); break;
+    case "addex": { const d = S.planDraft.prog.days[+b.dataset.di]; const last = d.exercises[d.exercises.length-1]; d.exercises.push({slot: nextSlot(last&&last.slot), name:"", sets:"4", reps:"10", w:""}); render(); } break;
+    case "rmex": S.planDraft.prog.days[+b.dataset.di].exercises.splice(+b.dataset.ei,1); render(); break;
+    case "addday": { const n = S.planDraft.prog.days.length+1; S.planDraft.prog.days.push({title:"Day "+n, focus:"", exercises:[{slot:"A1",name:"",sets:"4",reps:"10",w:""}]}); render(); } break;
+    case "rmday": S.planDraft.prog.days.splice(+b.dataset.di,1); render(); break;
+    case "plan-save": savePlan(); break;
+    case "export": exportBackup(); break;
+  }
+});
+function nextSlot(s){ if(!s) return "A1"; const m = /^([A-Z])(\d+)$/i.exec(s); if(!m) return ""; return m[2]==="1" ? m[1]+"2" : String.fromCharCode(m[1].toUpperCase().charCodeAt(0)+1)+"1"; }
+
+const timers = {};
+document.addEventListener("input", ev => {
+  const el = ev.target; const a = el.dataset && el.dataset.a; if(!a) return;
+  if (a==="f"){
+    const p = el.dataset.p, i = +el.dataset.i, k = el.dataset.k;
+    let val = el.value.trim();
+    if (k !== "w" && /^\d+$/.test(val)) val = parseInt(val);
+    clearTimeout(timers[p+i+k]); timers[p+i+k] = setTimeout(()=>setVal(p,i,k,val), 250);
+  }
+  else if (a==="pd"){ S.planDraft.prog.days[+el.dataset.di][el.dataset.k] = el.value; }
+  else if (a==="pe"){ S.planDraft.prog.days[+el.dataset.di].exercises[+el.dataset.ei][el.dataset.k] = el.value; }
+  else if (a==="pname"){ S.planDraft.names[el.dataset.v] = el.value; }
+});
+document.addEventListener("focusin", ev => { if (ev.target.matches && ev.target.matches(".fld input")) setTimeout(()=>{ try{ ev.target.select(); }catch(e){} }, 0); });
+
+// swipe between pages
+let tx=null, ty=null;
+document.addEventListener("touchstart", ev => { if (S.tab!=="gym" || !ev.target.closest("#cols")) { tx=null; return; } tx=ev.touches[0].clientX; ty=ev.touches[0].clientY; }, {passive:true});
+document.addEventListener("touchend", ev => { if (tx==null) return; const dx = ev.changedTouches[0].clientX - tx, dy = ev.changedTouches[0].clientY - ty; tx=null; if (Math.abs(dx) > 60 && Math.abs(dy) < 50) gotoPage(dx < 0 ? 1 : -1); }, {passive:true});
+
+function finish(p, quiet){
+  const a = materialize(p);
+  if (a.savedId && !a.dirty){ toast(`${S.names[p]} already saved`); return; }
+  const id = a.savedId || `${p}-${Date.now()}`;
+  const ex = a.ex.map(e => {
+    const n = parseInt(e.v.n) || 0; const rir = (e.v.rir === "" || e.v.rir == null) ? null : +e.v.rir;
+    return {slot:e.slot, name:e.name, target:e.target, v:{...e.v},
+      sets: Array.from({length:n}, () => ({w:String(e.v.w ?? ""), r:e.v.r, rir, done:true}))};
+  });
+  const sess = {person:p, day:a.day, title:a.title, focus:a.focus, id, finishedAt: a.savedAt || Date.now(), source:"app", ex};
+  S.sessions = [sess, ...S.sessions.filter(s=>s.id!==id)];
+  const wasUpdate = !!a.savedId;
+  a.savedId = id; a.savedAt = sess.finishedAt; a.dirty = false;
+  queueWrite("sessions/"+id, sess); commit(p);
+  S.day = a.day;
+  if (!quiet){ render(); toast(wasUpdate ? "Updated" : "Saved"); }
+}
+async function exportBackup(){
+  saveCache();
+  const name = `lifts-backup-${todayISO()}.json`;
+  const blob = new Blob([localStorage.getItem(LS) || "{}"], {type:"application/json"});
+  try{
+    const file = new File([blob], name, {type:"application/json"});
+    if (navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:name}); return; }
+  }catch(e){ if (e && e.name === "AbortError") return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+document.addEventListener("change", async ev => {
+  if (ev.target.id !== "import-in") return;
+  const f = ev.target.files && ev.target.files[0]; if (!f) return;
+  try{
+    const c = JSON.parse(await f.text());
+    if (!c || !c.programs || !Array.isArray(c.sessions)) throw new Error("bad");
+    S.names = c.names || S.names; S.programs = c.programs; S.sessions = c.sessions; S.active = c.active || {}; S.preview = {}; S.planDraft = null;
+    saveCache(); render(); toast("Backup restored");
+  }catch(e){ toast("That file isn't a Lifts backup"); }
+  ev.target.value = "";
+});
+function savePlan(){
+  const D = S.planDraft; const p = D.person;
+  D.prog.days.forEach(d => d.exercises = d.exercises.filter(e => e.name.trim()));
+  S.programs[p] = D.prog; S.names = D.names; S.preview = {};
+  queueWrite("programs/"+p, D.prog); queueWrite("settings/app", {names:D.names});
+  S.planDraft = null; saveCache(); render(); toast("Routine saved");
+}
+async function wake(){ try{ if(navigator.wakeLock && !wake.l){ wake.l = await navigator.wakeLock.request("screen"); wake.l.addEventListener("release",()=>wake.l=null);} }catch(e){} }
+document.addEventListener("pointerdown", wake, {once:true});
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible") wake(); });
+
+const editing = () => { const ae = document.activeElement; return ae && /^(n-|r-|w-|rir-|pe-|pt-|pf-|nm-)/.test(ae.id||""); };
+loadCache();
+if (!S.ready){ const c = JSON.parse(JSON.stringify(SEED)); S.names=c.names; S.programs=c.programs; S.sessions=c.sessions; S.active={}; S.ready=true; saveCache(); }
+try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
+render();
+window.addEventListener("pagehide", saveCache);
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
