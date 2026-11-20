@@ -279,7 +279,9 @@ function cmp(now, last){
   if (last == null || last === "") return "";
   const a = String(now ?? "").trim(), b = String(last ?? "").trim();
   if (a === b) return "";
-  if (/^[\d.]+$/.test(a) && /^[\d.]+$/.test(b)) return parseFloat(a) > parseFloat(b) ? "up" : "down";
+  // same text around the number ("37 lbs" vs "38 lbs") compares by the number
+  const re = /\d+(?:[.,]\d+)?/, ma = a.match(re), mb = b.match(re);
+  if (ma && mb && a.replace(re,"#") === b.replace(re,"#")) return parseFloat(ma[0].replace(",",".")) > parseFloat(mb[0].replace(",",".")) ? "up" : "down";
   return "chg";
 }
 
@@ -410,7 +412,13 @@ function gotoPage(d){ const n = pages().length; const g = Math.max(0, Math.min(n
 function stepVal(k, val, d){
   const s = String(val ?? "").trim();
   if (k === "rir"){ if (s === "") return d > 0 ? 0 : ""; const n = parseInt(s)+d; return n < 0 ? "" : Math.min(5, n); }
-  if (k === "w"){ if (s !== "" && !/^[\d.]+$/.test(s)) return val; const n = Math.max(0, Math.round(((parseFloat(s)||0) + 0.5*d)*2)/2); return String(n); }
+  if (k === "w"){
+    // step only the number, keep any text around it ("37 lbs" -> "37.5 lbs"); text with no number stays as is
+    if (s === "") return d > 0 ? "0.5" : "";
+    const m = s.match(/\d+(?:[.,]\d+)?/); if (!m) return val;
+    const n = Math.max(0, Math.round((parseFloat(m[0].replace(",", ".")) + 0.5*d)*2)/2);
+    return s.slice(0, m.index) + String(n) + s.slice(m.index + m[0].length);
+  }
   const n = (parseInt(s)||0) + d; return Math.max(k==="n"?1:0, n);
 }
 function setVal(p, i, k, val){
