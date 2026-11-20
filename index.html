@@ -43,7 +43,7 @@
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.3;
   padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px));
-  padding-block:0 16px;-webkit-tap-highlight-color:transparent}
+  padding-block:0 8px;-webkit-tap-highlight-color:transparent}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 .p-yo{--accent:var(--yo);--accent-soft:var(--yo-soft)}
 .p-mamor{--accent:var(--mamor);--accent-soft:var(--mamor-soft)}
@@ -59,24 +59,29 @@ input{font:inherit;color:var(--fg);background:var(--surface);border:1px solid va
 .stack{display:flex;flex-direction:column;gap:10px}
 .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex:none;display:inline-block}
-header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px 6px;display:flex;align-items:center;gap:4px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px 6px;display:flex;align-items:stretch;gap:10px}
+header.top>h1{align-self:center}
+.tb{display:flex;gap:4px;min-width:0}
+.tb>button{flex:1;min-width:0}
+.tb-days{flex:3}
+.tb-nav,.tb-tools{flex:2}
 
 /* top tools */
-.seg{display:flex;background:var(--surface-2);border-radius:9px;padding:2px;gap:2px;flex:none;margin-right:4px}
-.seg button{width:30px;height:28px;border-radius:7px;font-family:var(--display);font-weight:700;font-size:15px;color:var(--muted);white-space:nowrap}
+.seg{display:flex;background:var(--surface-2);border-radius:11px;padding:3px;gap:2px;min-width:0}
+.seg button{flex:1;min-width:0;height:42px;border-radius:9px;font-family:var(--display);font-weight:700;font-size:19px;color:var(--muted);white-space:nowrap}
 .seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
-.tool{height:36px;padding:0 9px;border-radius:10px;background:var(--surface-2);font-weight:600;font-size:13px;flex:none}
+.tool{height:48px;padding:0 9px;border-radius:11px;background:var(--surface-2);font-weight:600;font-size:13px;flex:none}
 .tool[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
-.tool.icon{width:38px;padding:0;display:inline-flex;align-items:center;justify-content:center}
-.tool.save{background:var(--fg);color:var(--bg);min-width:66px;padding:0 12px;font-size:14px}
+.tool.icon{padding:0;display:inline-flex;align-items:center;justify-content:center}
+.tool.save{flex:1.7;min-width:0;background:var(--fg);color:var(--bg);padding:0 6px;font-size:16px;white-space:nowrap}
 .tool.save.saved{background:var(--surface-2);color:var(--up)}
-.arrow{width:44px;height:38px;flex:none;border-radius:10px;background:var(--surface-2);font-size:26px;font-weight:700;line-height:1}
+.arrow{height:48px;border-radius:11px;background:var(--surface-2);font-size:32px;font-weight:700;line-height:1}
 .arrow:disabled{opacity:.3;cursor:default}
 
 /* columns */
 .cols{display:grid;grid-template-columns:1fr 1fr;column-gap:6px;row-gap:0;align-items:stretch}
 .cell{position:relative;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-top:0;padding:6px;min-width:0;display:flex}
-.gnum{position:absolute;top:-8px;left:-11px;z-index:1;width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:700;font-size:13px;line-height:19px;text-align:center;box-shadow:0 0 0 2px var(--bg)}
+.gnum{flex:none;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:700;font-size:13px;line-height:18px;text-align:center}
 .cell+.cell,.cell{border-bottom:0}
 .cell:not(.first) .ex{border-top:1px solid var(--line);padding-top:6px}
 .cell.first{border-top:1px solid var(--line);border-top-left-radius:var(--r);border-top-right-radius:var(--r)}
@@ -90,23 +95,22 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background
 .grp{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r);padding:6px;display:flex;flex-direction:column;gap:6px}
 .exsep{border:0;border-top:1px solid var(--line);margin:0}
 .ex{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
-.exhead{display:flex;gap:6px;align-items:flex-start;min-width:0;flex:0 0 auto}
+.exhead{display:flex;flex-wrap:wrap;gap:3px 5px;align-items:center;min-width:0;flex:0 0 auto}
 .fields{flex:1;align-items:stretch}
-.exname{font-weight:600;font-size:13px;line-height:1.2;min-width:0;overflow-wrap:anywhere;flex:1}
+.exname{font-weight:600;font-size:13.5px;line-height:1.2;min-width:0;overflow-wrap:anywhere;flex:1 1 80px}
 .fig{flex:none;width:18px;height:36px;align-self:center;margin:-2px 0}
 .fig *{fill:var(--line)}
 .fig .hi{fill:var(--accent)}
 .fig .spine{fill:none;stroke:var(--surface);stroke-width:.8}
-.mg{display:inline-block;font-size:9.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:1px 5px;border-radius:4px;vertical-align:1px;white-space:nowrap}
-.how{flex:none;width:24px;height:20px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:11px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.mg{margin-left:auto;flex:none;display:inline-block;font-size:9.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:1px 5px;border-radius:4px;vertical-align:1px;white-space:nowrap}
 .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
 .hdr4{font-size:10px;font-weight:600;color:var(--muted);text-align:center;letter-spacing:.04em;text-transform:uppercase;padding:0 7px 0 10px;margin-bottom:-2px}
 .last{font-family:var(--display);font-size:14px;line-height:1.1;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
 .old{font-family:var(--display);font-size:13px;color:var(--muted);text-align:center;opacity:.6}
 .fld{display:flex;flex-direction:column;align-items:stretch;gap:2px;min-width:0}
-.st{flex:1 1 20px;min-height:20px;max-height:46px;border-radius:6px;background:var(--surface-2);color:var(--muted);font-size:10px;line-height:1}
+.st{flex:1 1 20px;min-height:20px;border-radius:6px;background:var(--surface-2);color:var(--muted);font-size:10px;line-height:1}
 .st:active{background:var(--accent-soft);color:var(--accent)}
-.fld input{padding:2px 0;text-align:center;font-family:var(--display);font-size:19px;font-weight:600;border-radius:7px;width:100%;flex:1.5 1 32px;min-height:32px;max-height:60px}
+.fld input{padding:2px 0;text-align:center;font-family:var(--display);font-size:21px;font-weight:600;border-radius:7px;width:100%;flex:1.5 1 32px;min-height:32px}
 .fld input.up{border-color:var(--up);border-width:2px;color:var(--up)}
 .fld input.down{border-color:var(--down);border-width:2px;color:var(--down)}
 .fld input.chg{border-color:var(--accent);border-width:2px}
@@ -126,7 +130,7 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background
 .pday{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:6px}
 .pex{display:flex;flex-direction:column;gap:4px;padding-top:8px;border-top:1px solid var(--line)}
 .prow1{display:grid;grid-template-columns:44px 1fr 96px 28px;gap:6px;align-items:end}
-.prow2{display:grid;grid-template-columns:48px 52px 64px 1fr;gap:6px}
+.prow2{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .pf{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pf input{padding:6px;font-size:14px;width:100%}
 .hdr{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
@@ -270,11 +274,6 @@ function muscleFor(p, e){
   for (const d of program(p).days) for (const x of d.exercises) if (norm(x.name)===key && x.m) return x.m;
   return guessMuscle(e.name);
 }
-function linkFor(p, e){
-  const key = norm(e.name);
-  for (const d of program(p).days) for (const x of d.exercises) if (norm(x.name)===key && x.link) return x.link;
-  return "https://www.youtube.com/results?search_query=" + encodeURIComponent("how to do " + e.name + " exercise form");
-}
 function cmp(now, last){
   if (last == null || last === "") return "";
   const a = String(now ?? "").trim(), b = String(last ?? "").trim();
@@ -301,12 +300,11 @@ function renderGym(){
   const pg = pgs[S.g] || [];
   const dayBtns = Array.from({length:maxDays()}, (_,i)=>`<button data-a="day" data-v="${i}" aria-pressed="${i===di}">D${i+1}</button>`).join("");
   return `<header class="top">
-      <div class="seg" role="group" aria-label="Day">${dayBtns}</div>
-      <button class="arrow" data-a="prev" ${S.g<=0?"disabled":""} aria-label="Previous exercises">‹</button>
-      <button class="arrow" data-a="next" ${S.g>=pgs.length-1?"disabled":""} aria-label="Next exercises">›</button>
-      <span style="flex:1"></span>
-      <button class="tool icon" data-a="hist" aria-pressed="${S.hist}" aria-label="Show past weeks"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></button>
-      <button class="tool icon" data-a="edit" aria-label="Edit routine"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></button>
+      <div class="seg tb-days" role="group" aria-label="Day">${dayBtns}</div>
+      <div class="tb tb-nav"><button class="arrow" data-a="prev" ${S.g<=0?"disabled":""} aria-label="Previous exercises">‹</button>
+      <button class="arrow" data-a="next" ${S.g>=pgs.length-1?"disabled":""} aria-label="Next exercises">›</button></div>
+      <div class="tb tb-tools"><button class="tool icon" data-a="hist" aria-pressed="${S.hist}" aria-label="Show past weeks"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></button>
+      <button class="tool icon" data-a="edit" aria-label="Edit routine"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
       <button class="tool save" id="savebtn" data-a="finish"></button>
     </header>
     <div class="cols" id="cols">${rows(pg)}</div>`;
@@ -319,12 +317,12 @@ function field(p, i, k, val, last){
     <button class="st" data-a="step" data-p="${p}" data-i="${i}" data-k="${k}" data-d="-1" aria-label="${LABEL[k]} down" tabindex="-1">▼</button>
   </div>`;
 }
-function exCell(p, v, e, i){
+function exCell(p, v, e, i, num){
   const hist = entriesFor(p, e.name, S.hist ? 5 : 1, v.savedId);
   const last = hist[0] && hist[0].v;
   const older = S.hist ? hist.slice(1).reverse() : [];
   return `<div class="ex">
-      <div class="exhead"><span class="exname">${esc(e.name)}${muscleFor(p,e)?` <span class="mg">${esc(muscleFor(p,e))}</span>`:""}</span><a class="how" href="${esc(linkFor(p,e))}" target="_blank" rel="noopener" aria-label="How to do ${esc(e.name)}">▶</a></div>
+      <div class="exhead">${num?`<span class="gnum" aria-label="Superset ${num}">${num}</span>`:""}<span class="exname">${esc(e.name)}</span>${muscleFor(p,e)?`<span class="mg">${esc(muscleFor(p,e))}</span>`:""}</div>
       ${older.map(h=>`<div class="grid4 old" title="${esc(label(h.sess))}"><span>${show(h.v.n)}</span><span>${show(h.v.r)}</span><span>${show(h.v.w)}</span><span>${show(h.v.rir)}</span></div>`).join("")}
       <div class="grid4 last" title="Last time${hist[0]?": "+esc(label(hist[0].sess)):""}"><span>${show(last&&last.n)}</span><span>${show(last&&last.r)}</span><span>${show(last&&last.w)}</span><span>${show(last&&last.rir)}</span></div>
       <div class="grid4 fields">${["n","r","w","rir"].map(k=>field(p,i,k,e.v[k],last&&last[k])).join("")}</div>
@@ -343,7 +341,7 @@ function rows(pg){
       const list = byG[p][g];
       if (!list){ html += `<div></div>`; return; }
       const cls = ["cell", "p-"+p, k===0?"first":"", k===n-1?"lastc":"", k===0&&gi>0?"gap":""].join(" ");
-      html += `<div class="${cls}">${k===0?`<span class="gnum" aria-label="Superset ${all.indexOf(g)+1}">${all.indexOf(g)+1}</span>`:""}${list[k] ? exCell(p, vs[p], list[k][0], list[k][1]) : ""}</div>`;
+      html += `<div class="${cls}">${list[k] ? exCell(p, vs[p], list[k][0], list[k][1], k===0 ? all.indexOf(g)+1 : 0) : ""}</div>`;
     });
   });
   rows.n = nrows;
@@ -353,8 +351,11 @@ function rows(pg){
 function fit(){
   const c = document.getElementById("cols"); if (!c) return;
   c.style.gridTemplateRows = `auto repeat(${rows.n||1}, minmax(min-content, 1fr))`;
+  c.style.minHeight = "0px";
   const safeB = parseFloat(getComputedStyle(document.documentElement).paddingBottom) || 0;
-  c.style.minHeight = Math.max(0, window.innerHeight - c.getBoundingClientRect().top - window.scrollY - safeB - 10) + "px";
+  const padB = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+  const top = c.getBoundingClientRect().top + window.scrollY;
+  c.style.minHeight = Math.max(0, Math.floor(document.documentElement.clientHeight - top - safeB - padB) - 1) + "px";
   const cells = [...c.querySelectorAll(".cell")];
   cells.forEach(x => { const h = x.querySelector(".exhead"); if (h) h.style.minHeight = ""; });
   for (let i = 0; i + 1 < cells.length; i += 2){
@@ -387,7 +388,7 @@ function renderPlan(){
     ${d.exercises.map((e,ei)=>{ const f = (k,lbl,ph,im) => `<label class="pf"><span class="hdr">${lbl}</span><input id="pe-${di}-${ei}-${k}" data-a="pe" data-di="${di}" data-ei="${ei}" data-k="${k}" value="${esc(e[k]||"")}" ${ph?`placeholder="${ph}"`:""} ${im?`inputmode="${im}"`:""}></label>`;
       return `<div class="pex">
         <div class="prow1">${f("slot","Slot")}${f("name","Exercise")}${f("m","Muscle",esc(guessMuscle(e.name)))}<button class="xbtn" data-a="rmex" data-di="${di}" data-ei="${ei}" aria-label="Remove ${esc(e.name)}">✕</button></div>
-        <div class="prow2">${f("sets","Sets","","numeric")}${f("reps","Reps")}${f("w","Start kg","","decimal")}${f("link","Video link","YouTube search")}</div>
+        <div class="prow2">${f("sets","Sets","","numeric")}${f("reps","Reps")}${f("w","Start kg","","decimal")}</div>
       </div>`; }).join("")}
     <div><button class="btn small ghost" data-a="addex" data-di="${di}">+ Exercise</button></div>
   </section>`).join("");
