@@ -106,9 +106,10 @@ header.top>h1{align-self:center}
 .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
 .hdr4{font-size:10px;font-weight:600;color:var(--muted);text-align:center;letter-spacing:.04em;text-transform:uppercase;padding:0 7px 0 10px;margin-bottom:-2px}
 .last{font-family:var(--display);font-size:14px;line-height:1.1;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
-.old{font-family:var(--display);font-size:13px;color:var(--muted);text-align:center;opacity:.6}
+.old{font-family:var(--display);font-size:13px;line-height:1.1;color:var(--muted);text-align:center;opacity:.6}
 .fld{display:flex;flex-direction:column;align-items:stretch;gap:2px;min-width:0}
 .st{flex:1 1 20px;min-height:20px;border-radius:6px;background:var(--surface-2);color:var(--muted);font-size:10px;line-height:1}
+.cols.hist .st{display:none}
 .st:active{background:var(--accent-soft);color:var(--accent)}
 .fld input{padding:2px 0;text-align:center;font-family:var(--display);font-size:21px;font-weight:600;border-radius:7px;width:100%;flex:1.5 1 32px;min-height:32px}
 .fld input.up{border-color:var(--up);border-width:2px;color:var(--up)}
@@ -307,7 +308,7 @@ function renderGym(){
       <button class="tool icon" data-a="edit" aria-label="Edit routine"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg></button></div>
       <button class="tool save" id="savebtn" data-a="finish"></button>
     </header>
-    <div class="cols" id="cols">${rows(pg)}</div>`;
+    <div class="cols${S.hist?" hist":""}" id="cols">${rows(pg)}</div>`;
 }
 function field(p, i, k, val, last){
   const id = `${k}-${p}-${i}`;
